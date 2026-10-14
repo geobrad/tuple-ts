@@ -1,11 +1,11 @@
 import { tuple, _tupleCache } from ".";
 
-type ExpectNever<T extends never> = T;
+type ExpectNever<T extends never> = true;
 
 async function waitForGC(): Promise<void> {
-  await new Promise((res) => setTimeout(res, 0));
+  await new Promise((res) => setTimeout(res, 10));
   (global as any).gc(); // requires node --expose-gc
-  await new Promise((res) => setTimeout(res, 0));
+  await new Promise((res) => setTimeout(res, 10));
 }
 
 test("Empty tuples", () => {

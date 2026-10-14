@@ -12,7 +12,7 @@ function arrayEquivalent(
   return true;
 }
 
-function structEquivalent(
+function recordEquivalent(
   r1: Record<string, unknown>,
   r2: Record<string, unknown>,
 ): boolean {
@@ -27,18 +27,56 @@ function structEquivalent(
   return true;
 }
 
-export const _tupleCache = new InternCache<number, readonly unknown[]>(
+export const _tupleCache = new InternCache(
   hash.valuesHash,
   arrayEquivalent,
+  (x) => Object.freeze(x),
 );
 
-export const _structCache = new InternCache<number, Record<string, unknown>>(
-  (r) => hash.valuesHash(Object.keys(r).sort().flatMap(k => [k, r[k]])),
-  structEquivalent,
+export const _recordCache = new InternCache(
+  (r) =>
+    hash.valuesHash(
+      (Object.keys(r) as Array<keyof typeof r>)
+        .sort()
+        .flatMap((k) => [k, r[k]]),
+    ),
+  recordEquivalent,
+  (x) => Object.freeze(x),
 );
 
 export const tuple = <const T extends readonly unknown[]>(...t: T) =>
-  Object.freeze(_tupleCache.get(t));
+  _tupleCache.get(t);
 
-export const struct = <const T extends Record<string, unknown>>({ ...r }: T) =>
-  Object.freeze(_structCache.get(r));
+export const record = <const T extends Record<string, unknown>>({ ...r }: T) =>
+  _recordCache.get(r);
+
+export class DuplicateKeyError extends Error {
+  override readonly name = "DuplicateKeyError";
+  constructor() {
+    super("All keys must be distinct.");
+  }
+}
+
+export const struct = <const K extends Array<string>>(...keys: K) => {
+  keys.forEach((k) => {
+    if (typeof k !== "string") {
+      throw new TypeError("All keys must be strings.");
+    }
+  });
+  if (new Set(keys).size !== keys.length) {
+    throw new DuplicateKeyError();
+  }
+  const cache = new InternCache<number, Record<K[number], unknown>>(
+    (s) => hash.valuesHash(keys.map((k: K[number]) => s[k])),
+    (s1, s2) => keys.every((k: K[number]) => Object.is(s1[k], s2[k])),
+    <T extends Record<K[number], unknown>>(r: T) =>
+      Object.fromEntries(keys.map((k: K[number]) => [k, r[k]])) as T,
+  );
+  return <const T extends Record<K[number], unknown>>(s: T) =>
+    cache.get(
+      Object.fromEntries(keys.map((k: K[number]) => [k, s[k]])) as Pick<
+        T,
+        K[number]
+      >,
+    );
+};

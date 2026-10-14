@@ -15,7 +15,7 @@ JavaScript normally compares arrays and objects by reference:
 ```ts
 tuple(1, 2) === tuple(1, 2) // true
 
-struct({ x: 1 }) === struct({ x: 1 }) // true
+record({ x: 1 }) === record({ x: 1 }) // true
 ```
 
 Equal values are **interned to the same object**.
@@ -163,19 +163,19 @@ a === b; // true
 
 The result retains the tuple's TypeScript type while gaining the same runtime identity semantics.
 
-## Structs
+## Records
 
-`struct` provides the same semantics for objects:
+`record` provides the same value-based identity semantics for objects:
 
 ```ts
-import { struct } from "tuple-ts";
+import { record } from "tuple-ts";
 
-const a = struct({
+const a = record({
   id: 1,
   role: "admin",
 });
 
-const b = struct({
+const b = record({
   role: "admin",
   id: 1,
 });
@@ -185,7 +185,7 @@ a === b; // true
 
 Property order does not matter.
 
-Structs are frozen:
+Records are frozen:
 
 ```ts
 Object.isFrozen(a); // true
@@ -197,18 +197,18 @@ And they work naturally as `Map` keys:
 const users = new Map();
 
 users.set(
-  struct({ id: 42, role: "admin" }),
+  record({ id: 42, role: "admin" }),
   "Alice",
 );
 
 users.get(
-  struct({ role: "admin", id: 42 }),
+  record({ role: "admin", id: 42 }),
 ); // "Alice"
 ```
 
-### Typed structs
+### Typed records
 
-As with tuples, you can define a reusable typed constructor:
+As with tuples, you can define a reusable typed constructor by passing a type argument:
 
 ```ts
 interface User {
@@ -217,7 +217,7 @@ interface User {
   updatedAt: number;
 }
 
-const User = struct<User>;
+const User = record<User>;
 
 const a = User({
   id: "alice",
@@ -233,6 +233,34 @@ const b = User({
 
 a === b; // true
 ```
+
+## Structs
+
+`record` interns whatever shape you hand it — which means any difference in keys or values produces a different object. If you want something more locked-down, where a fixed declared set of keys defines identity, use `struct`.
+
+`struct` takes key names as arguments and returns a factory. The factory accepts any object that has at least those keys, extracts exactly those keys, and interns the result.
+
+```ts
+import { struct } from "tuple-ts";
+
+const Point = struct("x", "y");
+
+const a = Point({ x: 1, y: 2 });
+const b = Point({ x: 1, y: 2 });
+
+a === b; // true
+```
+
+Because the schema is fixed at construction time, equality is always based on precisely those keys — no more, no less:
+
+```ts
+const a = Point({ x: 1, y: 2 });
+const b = Point({ x: 1, y: 3 });
+
+a === b; // false — y differs
+```
+
+All keys passed to `struct` must be distinct strings. Passing duplicate keys throws a `DuplicateKeyError`.
 
 ## Equality semantics
 
@@ -286,7 +314,7 @@ In other words, you don't have to manually maintain a global cache of every tupl
 
 ## TypeScript first
 
-`tuple` and `struct` are designed to preserve TypeScript's inference:
+`tuple`, `record`, and `struct` are designed to preserve TypeScript's inference:
 
 ```ts
 const value = tuple(
@@ -298,10 +326,10 @@ const value = tuple(
 // readonly ["hello", 42, true]
 ```
 
-The library is deliberately small: the runtime API consists of the two constructors you actually need:
+The library is deliberately small: the runtime API consists of three constructors:
 
 ```ts
-import { tuple, struct } from "tuple-ts";
+import { tuple, record, struct } from "tuple-ts";
 ```
 
 ## When should I use it?

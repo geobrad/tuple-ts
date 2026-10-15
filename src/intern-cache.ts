@@ -1,6 +1,6 @@
 export default class<H, T extends object> {
   private readonly map: Map<H, Set<WeakRef<T>>> = new Map();
-  private cleanupRegistry = new FinalizationRegistry<[H, WeakRef<T>]>((x) =>
+  private readonly cleanupRegistry = new FinalizationRegistry<[H, WeakRef<T>]>((x) =>
     this.remove(x),
   );
 
@@ -38,7 +38,7 @@ export default class<H, T extends object> {
     Object.freeze(obj)
     const ref = new WeakRef<T>(obj);
     hashBucket.add(ref);
-    this.cleanupRegistry.register(obj, [hash, ref]);
+    this.cleanupRegistry.register(obj, [hash, ref], this);
     return obj;
   }
 
@@ -50,7 +50,7 @@ export default class<H, T extends object> {
   }
 
   reset(): void {
+    this.cleanupRegistry.unregister(this);
     this.map.clear();
-    this.cleanupRegistry = new FinalizationRegistry((x) => this.remove(x));
   }
 }

@@ -1,6 +1,13 @@
 import InternCache from "./intern-cache";
 import * as hash from "./hash";
 
+type NoExtraKeys<T, K extends PropertyKey> = T &
+  Record<Exclude<keyof T, K>, never>;
+
+type BaseKey = string | number;
+type BaseTuple = readonly unknown[];
+type BaseRecord<K extends BaseKey> = Record<K, unknown>;
+
 function arrayEquivalent(
   a1: readonly unknown[],
   a2: readonly unknown[],
@@ -13,25 +20,40 @@ function arrayEquivalent(
 }
 
 function recordEquivalent(
-  r1: Record<string, unknown>,
-  r2: Record<string, unknown>,
+  r1: Record<BaseKey, unknown>,
+  r2: Record<BaseKey, unknown>,
 ): boolean {
   const r1Keys = Object.keys(r1);
   const r2Keys = Object.keys(r2);
   if (r2Keys.length !== r1Keys.length) return false;
-  for (let i = 0; i < r1Keys.length; i++) {
-    const k = r1Keys[i];
-    if (!(k in r2)) return false;
-    if (!Object.is(r2[k], r1[k])) return false;
-  }
-  return true;
+  return r1Keys.every(
+    k => Object.hasOwn(r2, k) && Object.is(r1[k], r2[k])
+  )
 }
 
-export const _tupleCache = new InternCache(
-  hash.valuesHash,
-  arrayEquivalent,
-  (x) => Object.freeze(x),
-);
+const defineTuple = <T extends BaseTuple>() =>
+  Object.assign(
+    <const T_ extends T>(...t: T_) => _tupleCache.get(t),
+    {
+      like: <T_ extends T>(...exemplar: T_ | []) => defineTuple<T_>(),
+    },
+  );
+
+const defineRecord = <K extends BaseKey, R extends BaseRecord<K>>(
+  keys?: readonly K[],
+) =>
+  Object.assign(
+    <const R_ extends R>(r: R_) =>
+      _recordCache.get(
+          Object.fromEntries(keys ? keys.map((k) => [k, r[k] as R_[K]]) : Object.entries(r))
+      ) as Readonly<Pick<R_, Extract<keyof R_, K>>>,
+    {
+      like: <R_ extends R>(exemplar?: NoExtraKeys<R_, K>) =>
+        defineRecord<K, R_>(keys),
+    },
+  );
+
+export const _tupleCache = new InternCache(hash.valuesHash, arrayEquivalent);
 
 export const _recordCache = new InternCache(
   (r) =>
@@ -41,42 +63,11 @@ export const _recordCache = new InternCache(
         .flatMap((k) => [k, r[k]]),
     ),
   recordEquivalent,
-  (x) => Object.freeze(x),
 );
 
-export const tuple = <const T extends readonly unknown[]>(...t: T) =>
-  _tupleCache.get(t);
+export const tuple = defineTuple();
 
-export const record = <const T extends Record<string, unknown>>({ ...r }: T) =>
-  _recordCache.get(r);
+export const record = defineRecord();
 
-export class DuplicateKeyError extends Error {
-  override readonly name = "DuplicateKeyError";
-  constructor() {
-    super("All keys must be distinct.");
-  }
-}
-
-export const struct = <const K extends Array<string>>(...keys: K) => {
-  keys.forEach((k) => {
-    if (typeof k !== "string") {
-      throw new TypeError("All keys must be strings.");
-    }
-  });
-  if (new Set(keys).size !== keys.length) {
-    throw new DuplicateKeyError();
-  }
-  const cache = new InternCache<number, Record<K[number], unknown>>(
-    (s) => hash.valuesHash(keys.map((k: K[number]) => s[k])),
-    (s1, s2) => keys.every((k: K[number]) => Object.is(s1[k], s2[k])),
-    <T extends Record<K[number], unknown>>(r: T) =>
-      Object.fromEntries(keys.map((k: K[number]) => [k, r[k]])) as T,
-  );
-  return <const T extends Record<K[number], unknown>>(s: T) =>
-    cache.get(
-      Object.fromEntries(keys.map((k: K[number]) => [k, s[k]])) as Pick<
-        T,
-        K[number]
-      >,
-    );
-};
+export const struct = <const K extends string>(...keys: readonly K[]) =>
+  defineRecord(keys);

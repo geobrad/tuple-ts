@@ -1,7 +1,7 @@
 export default class<H, T extends object> {
   private readonly map: Map<H, Set<WeakRef<T>>> = new Map();
-  private readonly cleanupRegistry = new FinalizationRegistry<[H, WeakRef<T>]>((x) =>
-    this.remove(x),
+  private readonly cleanupRegistry = new FinalizationRegistry<[H, WeakRef<T>]>(
+    (x) => this.remove(x),
   );
 
   constructor(
@@ -35,7 +35,7 @@ export default class<H, T extends object> {
     }
 
     // Object is not in the cache. Add it and return it.
-    Object.freeze(obj)
+    Object.freeze(obj);
     const ref = new WeakRef<T>(obj);
     hashBucket.add(ref);
     this.cleanupRegistry.register(obj, [hash, ref], this);

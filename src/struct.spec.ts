@@ -1,74 +1,73 @@
-import { struct, record } from ".";
+import { struct } from ".";
 
 type ExpectNever<T extends never> = true;
+type ExpectExtends<Outer, Inner extends Outer> = true;
 
 describe("struct", () => {
-  it("preserves keys and values", () => {
-    const obj = { x: 1, y: 2 };
-    const s = record(obj);
-    expect(s).toEqual(obj);
+  it("narrows on construction", () => {
+    const User = struct(["name", "age"]);
+    const user0 = User("Bob", 25);
+    const user1 = User("Bob", 25);
+    type ExpectNarrowedTuple = ExpectExtends<readonly ["Bob", 25], typeof user1>;
+    type ExpectNarrowedObject = ExpectExtends<
+      { name: "Bob"; age: 25 },
+      typeof user1
+    >;
+    type ExpectNotNeverA = ExpectExtends<typeof user1[0], "Bob">;
+    type ExpectNotNeverB = ExpectExtends<typeof user1.name, "Bob">;
+    type ExpectNotNeverD = ExpectExtends<typeof user1[1], 25>;
+    type ExpectNotNeverC = ExpectExtends<typeof user1.age, 25>;
+    expect(user0).toBe(user1);
+    expect([...user1]).toEqual(["Bob", 25]);
+    expect(user1.length).toBe(2);
+    expect(user1.name).toBe("Bob");
+    expect(user1.age).toBe(25);
+    expect(Object.isFrozen(user1)).toBe(true);
+    expect({...user1}).toEqual({0: "Bob", 1: 25, name: "Bob", age: 25});
   });
 
-  it("returns the same object for shallow-equal input objects", () => {
-    const a = record({ x: 1, y: 2 });
-    const b = record({ x: 1, y: 2 });
-    expect(a).toBe(b);
-    expect(a === b).toBe(true);
+  it("has shallow identity/equality semantics", () => {
+    const User = struct(["name", "age"]);
+    const user1 = User("Bob", 25);
+    const user2 = User("Bob", 25);
+    const user3 = User("Henry", 25);
+    expect(user2).toBe(user1);
+    expect(user2 === user1).toBe(true);
+    expect(user3).not.toBe(user1);
+    type ExpectNoOverlap = ExpectNever<Extract<typeof user3, typeof user2>>;
   });
 
-  it("is order-agnostic", () => {
-    const a = record({ x: 1, y: 2 });
-    const b = record({ y: 2, x: 1 });
-    expect(a).toBe(b);
-    expect(a === b).toBe(true);
+  it("supports object-based construction", () => {
+    const User = struct(["name", "age"]);
+    const user1 = User.from({name: "Bob", age: 25});
+    type ExpectNarrowedTuple = ExpectExtends<readonly ["Bob", 25], typeof user1>;
+    type ExpectNarrowedObject = ExpectExtends<
+      { name: "Bob"; age: 25 },
+      typeof user1
+    >;
+    type ExpectNotNeverA = ExpectExtends<typeof user1[0], "Bob">;
+    type ExpectNotNeverB = ExpectExtends<typeof user1.name, "Bob">;
+    type ExpectNotNeverD = ExpectExtends<typeof user1[1], 25>;
+    type ExpectNotNeverC = ExpectExtends<typeof user1.age, 25>;
+    expect(user1).toBe(User("Bob", 25));
+
+    const user2 = User.from({name: "Henry", age: 25});
+    type ExpectNoOverlap = ExpectNever<Extract<typeof user2, typeof user1>>;
+    expect(user2).not.toBe(user1);
   });
 
-  it("returns different object if keys or values differ", () => {
-    const s1 = record({ x: 1, y: 2 });
-    const s2 = record({ x: 1, y: 3 });
-    const s3 = record({ x: 1, y: 2, z: 3 });
-    expect(s1).not.toBe(s2);
-    type ExpectS1S2NoOverlap = ExpectNever<Extract<typeof s1, typeof s2>>;
-    expect(s1).not.toBe(s3);
-    expect(s1 === s3).toBe(false);
-  });
-
-  it("can be customised", () => {
-    type Geocode = { lat: number; long: number };
-    const geocode = record<Geocode>;
-    const a = geocode({ lat: 1, long: 2 });
-    const b = geocode({ lat: 1, long: 2 });
-    expect(a).toBe(b);
+  it("can be narrowed", () => {
+    type Person = [string, number];
+    const Person = struct(["name", "age"]).narrow<Person>();
+    type Test1 = ExpectExtends<[string, number], Parameters<typeof Person>>;
+    type Test2 = ExpectExtends<Parameters<typeof Person>, [string, number]>;
   });
 
 
-  it("returns frozen instances", () => {
-    const s = record({ x: 1, y: 2 });
-    expect(Object.isFrozen(s)).toBe(true);
-    expect(() => {
-      (s as any).x = 42;
-    }).toThrow();
-  });
-
-  it("distinguishes between additional attributes", () => {
-    const Point = record<{x: number, y: number}>;
-    const p1 = Point({ x: 1, y: 2 });
-    const p2_coords = { x: 1, y: 2, z: 3 };
-    const p2 = Point(p2_coords);
-    expect(p2).not.toBe(p1);
-    expect(p2 !== p1).toBe(true);
-  });
-});
-
-describe("structType", () => {
-  it("returns a struct factory", () => {
-    const Point = struct("x", "y");
-    const p1 = Point({x: 1, y: 2});
-    const p2 = Point({x: 1, y: 2, z: 3});
-    const p3 = Point({x: 1, y: 3});
-    expect(p2).toBe(p1);
-    expect(p2 === p1).toBe(true);
-    expect(p3).not.toBe(p1);
-    type ExpectS1S2NoOverlap = ExpectNever<Extract<typeof p1, typeof p3>>;
+  it("can be narrowed by object type", () => {
+    type Person = {name: string, age: number};
+    const Person = struct(["name", "age"]).narrowFrom<Person>();
+    type Test1 = ExpectExtends<[string, number], Parameters<typeof Person>>;
+    type Test2 = ExpectExtends<Parameters<typeof Person>, [string, number]>;
   });
 });

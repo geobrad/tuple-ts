@@ -1,32 +1,33 @@
-export default class<H, T extends object> {
-  private readonly map: Map<H, Set<WeakRef<T>>> = new Map();
-  private readonly cleanupRegistry = new FinalizationRegistry<[H, WeakRef<T>]>(
+export default class<H, K, V extends object> {
+  private readonly map: Map<H, Set<WeakRef<V>>> = new Map();
+  private readonly cleanupRegistry = new FinalizationRegistry<[H, WeakRef<V>]>(
     (x) => this.remove(x),
   );
 
   constructor(
-    private readonly hashFn: (value: T) => H,
-    private readonly matchFn: (a: T, b: T) => boolean,
+    private readonly hashFn: (key: K) => H,
+    private readonly matchFn: (key: K, value: V) => boolean,
+    private readonly injestFn: (key: K) => V,
   ) {}
 
-  private remove([hash, ref]: [H, WeakRef<T>]): void {
+  private remove([hash, valueRef]: [H, WeakRef<V>]): void {
     const hashBucket = this.map.get(hash);
     if (!hashBucket) {
       return;
     }
-    hashBucket.delete(ref);
+    hashBucket.delete(valueRef);
     if (hashBucket.size === 0) {
       this.map.delete(hash);
     }
   }
 
-  get<T_ extends T>(obj: T_): Readonly<T_> {
-    const hash = this.hashFn(obj);
+  get<K_ extends K, V_ extends V>(key: K_): V_ {
+    const hash = this.hashFn(key);
     let hashBucket = this.map.get(hash);
     if (hashBucket !== undefined) {
       for (const ref of hashBucket) {
         const o = ref.deref();
-        if (o && this.matchFn(obj, o)) return o as T_;
+        if (o && this.matchFn(key, o)) return o as V_;
       }
     } else {
       // This hash has no bucket. Create one.
@@ -35,11 +36,11 @@ export default class<H, T extends object> {
     }
 
     // Object is not in the cache. Add it and return it.
-    Object.freeze(obj);
-    const ref = new WeakRef<T>(obj);
-    hashBucket.add(ref);
-    this.cleanupRegistry.register(obj, [hash, ref], this);
-    return obj;
+    const value = this.injestFn(key) as V_;
+    const valueRef = new WeakRef(value);
+    hashBucket.add(valueRef);
+    this.cleanupRegistry.register(value, [hash, valueRef], this);
+    return value;
   }
 
   get size(): number {

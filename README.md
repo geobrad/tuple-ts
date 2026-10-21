@@ -222,7 +222,7 @@ const Point = struct(["x", "y"]).typedFrom({ x: 0, y: 0 });
 
 ### Struct schemas and identity
 
-Each call to `struct(labels)` creates its own cache. Factories narrowed from that schema with `.typed()` share the cache, but separate calls to `struct()` create separate caches, even when given identical labels:
+Each call to `struct(labels)` creates its own cache. Factories narrowed from that schema with `.typed()` or `.typedFrom()` share the cache, but separate calls to `struct()` create separate caches, even when given identical labels:
 
 ```ts
 const PointA = struct(["x", "y"]).typed<[number, number]>();

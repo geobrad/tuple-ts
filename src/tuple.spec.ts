@@ -127,11 +127,15 @@ test("Tuples can be narrowed by generic type argument", () => {
   type Point = [number, number];
   const Point = tuple.typed<Point>();
   TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
-  expect(Point(1,2)).toBe(tuple(1,2));
+  const point1 = Point(1, 2);
+  expect(point1).toBe(tuple(1,2));
+  TT.expect<TT.Equivalent<typeof point1, [1, 2]>>;
 });
 
 test("Tuples can be narrowed by exemplar", () => {
   const Point = tuple.typed(0, 0);
   TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
-  expect(Point(1,2)).toBe(tuple(1,2));
+  const point1 = Point(1, 2);
+  expect(point1).toBe(tuple(1,2));
+  TT.expect<TT.Equivalent<typeof point1, [1, 2]>>;
 });

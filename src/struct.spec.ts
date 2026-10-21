@@ -1,9 +1,6 @@
 import { struct } from ".";
 import * as TT from "./type-testing";
 
-type ExpectNever<T extends never> = true;
-type ExpectExtends<Outer, Inner extends Outer> = true;
-
 describe("struct", () => {
   it("narrows on construction", () => {
     const User = struct(["name", "age"]);
@@ -52,6 +49,10 @@ describe("struct", () => {
         { name: string; age: number }
       >
     >;
+    const person1 = Person("Bob", 25);
+    expect(person1).toBe(Person("Bob", 25));
+    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
+    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
   });
 
   it("can be narrowed using an exemplar", () => {
@@ -63,6 +64,10 @@ describe("struct", () => {
         { name: string; age: number }
       >
     >;
+    const person1 = Person("Bob", 25);
+    expect(person1).toBe(Person("Bob", 25));
+    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
+    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
   });
 
   it("can be narrowed by object type", () => {
@@ -75,6 +80,10 @@ describe("struct", () => {
         { name: string; age: number }
       >
     >;
+    const person1 = Person("Bob", 25);
+    expect(person1).toBe(Person("Bob", 25));
+    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
+    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
   });
 
   it("can be narrowed by object type using an exemplar", () => {
@@ -86,5 +95,9 @@ describe("struct", () => {
         { name: string; age: number }
       >
     >;
+    const person1 = Person("Bob", 25);
+    expect(person1).toBe(Person("Bob", 25));
+    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
+    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
   });
 });

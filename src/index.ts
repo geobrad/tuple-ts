@@ -18,8 +18,8 @@ function arrayEquivalent(
 const defineTuple = <T extends BaseTuple>() => {
   const construct = <const T_ extends T>(...args: T_) =>
     _tupleCache.get<T_, T_>(args);
-  const narrow = <T_ extends T>(..._exemplar: T_ | []) => defineTuple<T_>();
-  return Object.assign(construct, { narrow });
+  const typed = <T_ extends T>(..._exemplar: T_ | []) => defineTuple<T_>();
+  return Object.assign(construct, { typed });
 };
 
 type ObjectOf<T extends BaseTuple, L extends BaseLabels> = {
@@ -65,13 +65,13 @@ const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
     return construct<T_, ObjectOf<T_, L>>(...args);
   };
 
-  const narrow = <T_ extends T>(..._exemplar: T_ | []) =>
+  const typed = <T_ extends T>(..._exemplar: T_ | []) =>
     defineStruct<T_, L>(cache, labels);
 
-  const narrowFrom = <O extends ObjectOf<T, L>>(..._args: [exemplar: O] | []) =>
+  const typedFrom = <O extends ObjectOf<T, L>>(..._args: [exemplar: O] | []) =>
     defineStruct<{ [I in keyof L]: O[L[I]] }, L>(cache, labels);
 
-  return Object.assign(fromTuple, { from: fromObject, narrow, narrowFrom });
+  return Object.assign(fromTuple, { from: fromObject, typed, typedFrom });
 };
 
 export const _tupleCache = new InternCache(

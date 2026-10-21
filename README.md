@@ -78,9 +78,9 @@ Type-narrowed tuple factories are also supported:
 
 ```ts
 type Point = [number, number];
-const Point = tuple.narrow<Point>();
+const Point = tuple.typed<Point>();
 // Or equivalently, using an exemplar:
-// const Point = tuple.narrow(0, 0);
+// const Point = tuple.typed(0, 0);
 
 type P = Parameters<typeof Point>; // [number, number];
 ```
@@ -102,14 +102,14 @@ tuple(10, 20) === tuple(10, 21); // false!
 tuple(10, 20) === tuple(20, 10); // false!
 ```
 
-### Constraining a tuple factory with `.narrow()`
+### Constraining a tuple factory with `.typed()`
 
-Use `.narrow()` to make a reusable tuple factory whose arguments must satisfy a nominated tuple type.
+Use `.typed()` to make a reusable tuple factory whose arguments must satisfy a nominated tuple type.
 
 Specify the type explicitly:
 
 ```ts
-const Point = tuple.narrow<[number, number]>();
+const Point = tuple.typed<[number, number]>();
 
 Point(10, 20);   // OK
 Point(10, "20"); // TypeScript error
@@ -118,7 +118,7 @@ Point(10, "20"); // TypeScript error
 You can alternatively provide an exemplar from which the type constraint will be inferred:
 
 ```ts
-const NumberPair = tuple.narrow(0, 0);
+const NumberPair = tuple.typed(0, 0);
 
 NumberPair(10, 20);   // OK
 NumberPair(10, "20"); // TypeScript error
@@ -193,40 +193,40 @@ The returned value contains the tuple slots and the schema's named properties, n
 
 ### Constraining a struct factory
 
-Just like `tuple`, structs support `.narrow()` to specify the struct's value types positionally:
+Just like `tuple`, structs support `.typed()` to specify the struct's value types positionally:
 
 ```ts
-const Point = struct(["x", "y"]).narrow<[number, number]>();
+const Point = struct(["x", "y"]).typed<[number, number]>();
 
 Point(10, 20);   // OK
 Point(10, "20"); // TypeScript error
 ```
 
-Use `.narrowFrom()` when you want to express the value types by label instead:
+Use `.typedFrom()` when you want to express the value types by label instead:
 
 ```ts
 type Coordinates = { x: number; y: number };
 
-const Point = struct(["x", "y"]).narrowFrom<Coordinates>();
+const Point = struct(["x", "y"]).typedFrom<Coordinates>();
 
 Point(10, 20);    // OK
 Point(10, "20");  // TypeScript error
 Point.from({ x: 10, y: 20 }); // OK
 ```
 
-You can also provide a typed exemplar to `.narrowFrom()`:
+You can also provide a typed exemplar to `.typedFrom()`:
 
 ```ts
-const Point = struct(["x", "y"]).narrowFrom({ x: 0, y: 0 });
+const Point = struct(["x", "y"]).typedFrom({ x: 0, y: 0 });
 ```
 
 ### Struct schemas and identity
 
-Each call to `struct(labels)` creates its own cache. Factories narrowed from that schema share the cache, but separate calls to `struct()` create separate caches, even when given identical labels:
+Each call to `struct(labels)` creates its own cache. Factories narrowed from that schema with `.typed()` share the cache, but separate calls to `struct()` create separate caches, even when given identical labels:
 
 ```ts
-const PointA = struct(["x", "y"]).narrow<[number, number]>();
-const PointB = struct(["x", "y"]).narrow<[number, number]>();
+const PointA = struct(["x", "y"]).typed<[number, number]>();
+const PointB = struct(["x", "y"]).typed<[number, number]>();
 
 PointA(1, 2) === PointA(1, 2); // true
 PointA(1, 2) === PointB(1, 2); // false

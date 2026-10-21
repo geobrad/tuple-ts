@@ -44,7 +44,7 @@ describe("struct", () => {
 
   it("can be narrowed", () => {
     type Person = [string, number];
-    const Person = struct(["name", "age"]).narrow<Person>();
+    const Person = struct(["name", "age"]).typed<Person>();
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -55,7 +55,7 @@ describe("struct", () => {
   });
 
   it("can be narrowed using an exemplar", () => {
-    const Person = struct(["name", "age"]).narrow("", 0);
+    const Person = struct(["name", "age"]).typed("", 0);
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -67,7 +67,7 @@ describe("struct", () => {
 
   it("can be narrowed by object type", () => {
     type Person = { name: string; age: number };
-    const Person = struct(["name", "age"]).narrowFrom<Person>();
+    const Person = struct(["name", "age"]).typedFrom<Person>();
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -78,7 +78,7 @@ describe("struct", () => {
   });
 
   it("can be narrowed by object type using an exemplar", () => {
-    const Person = struct(["name", "age"]).narrowFrom({ name: "", age: 0 });
+    const Person = struct(["name", "age"]).typedFrom({ name: "", age: 0 });
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<

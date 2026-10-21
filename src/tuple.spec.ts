@@ -125,13 +125,13 @@ test("Tuples are frozen", () => {
 
 test("Tuples can be narrowed by generic type argument", () => {
   type Point = [number, number];
-  const Point = tuple.narrow<Point>();
+  const Point = tuple.typed<Point>();
   TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
   expect(Point(1,2)).toBe(tuple(1,2));
 });
 
 test("Tuples can be narrowed by exemplar", () => {
-  const Point = tuple.narrow(0, 0);
+  const Point = tuple.typed(0, 0);
   TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
   expect(Point(1,2)).toBe(tuple(1,2));
 });

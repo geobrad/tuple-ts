@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "tuple-ts",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Tuples and structs for TypeScript and JavaScript with equality and identity semantics.",
   "keywords": [
     "tuple",
@@ -35,7 +35,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest run src/",
+    "test": "tsc --noEmit && vitest run src/",
     "prepare": "npm run build",
     "prepublishOnly": "npm test"
   },

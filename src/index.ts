@@ -4,6 +4,9 @@ import * as hash from "./hash.js";
 type BaseTuple = readonly unknown[];
 type BaseLabels = readonly string[];
 
+type NumericKeyOf<T> = keyof T & `${number}`;
+type ToNumber<K> = K extends `${infer N extends number}` ? N : never;
+
 function arrayEquivalent(
   a1: readonly unknown[],
   a2: readonly unknown[],
@@ -18,7 +21,7 @@ function arrayEquivalent(
 export type TupleFactory<T extends BaseTuple = BaseTuple> = {
   <const T_ extends T>(...args: T_): T_;
   typed<T_ extends T>(...exemplar: T_ | []): TupleFactory<T_>;
-}
+};
 
 const defineTuple = <T extends BaseTuple>(): TupleFactory<T> => {
   const construct = <const T_ extends T>(...args: T_) =>
@@ -28,10 +31,7 @@ const defineTuple = <T extends BaseTuple>(): TupleFactory<T> => {
 };
 
 type ObjectOf<T extends BaseTuple, L extends BaseLabels> = {
-  [I in Extract<
-    keyof L,
-    `${number}`
-  > as L[I]]: T[I extends `${infer N extends number}` ? N : never];
+  [I in NumericKeyOf<L> as L[I]]: T[ToNumber<I>];
 };
 
 type TupleFromObject<
@@ -45,12 +45,14 @@ export type StructFactory<T extends BaseTuple, L extends BaseLabels> = {
   from<
     const O extends ObjectOf<T, L>,
     const T_ extends TupleFromObject<T, L, O>,
-  >(arg: O): Readonly<ObjectOf<T_, L> & T_>;
+  >(
+    arg: O,
+  ): Readonly<ObjectOf<T_, L> & T_>;
   typed<T_ extends T>(...exemplar: T_ | []): StructFactory<T_, L>;
   typedFrom<O extends ObjectOf<T, L>>(
     ...args: [exemplar: O] | []
   ): StructFactory<{ [I in keyof L]: O[L[I]] }, L>;
-}
+};
 
 const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
   cache: InternCache<
@@ -101,12 +103,11 @@ export const tuple = defineTuple<BaseTuple>();
 
 export const struct = <const L extends readonly string[]>(labels: L) => {
   const cacheInjestFn = (tuple: BaseTuple) => {
-    type T = ObjectOf<BaseTuple, L>;
-    const labeledTuple = tuple as T;
-    labels.forEach((label: keyof T, index) => {
-      labeledTuple[label] = tuple[index] as T[keyof T];
+    type O = ObjectOf<BaseTuple, L>;
+    labels.forEach((label: keyof O, index) => {
+      (tuple as O)[label] = tuple[index] as O[keyof O];
     });
-    return Object.freeze(labeledTuple as T & BaseTuple);
+    return Object.freeze(tuple as O & BaseTuple);
   };
   const cache = new InternCache(
     hash.valuesHash,

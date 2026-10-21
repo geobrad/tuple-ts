@@ -1,15 +1,14 @@
 {
   "type": "module",
   "name": "tuple-ts",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Tuples and structs for TypeScript and JavaScript with equality and identity semantics.",
   "keywords": [
     "tuple",
     "struct",
     "labeled",
     "labelled",
-    "labels",
-    "names",
+    "named",
     "namedtuple",
     "named-tuple",
     "python",

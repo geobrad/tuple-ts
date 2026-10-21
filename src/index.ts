@@ -18,8 +18,7 @@ function arrayEquivalent(
 const defineTuple = <T extends BaseTuple>() => {
   const construct = <const T_ extends T>(...args: T_) =>
     _tupleCache.get<T_, T_>(args);
-  const narrow = <T_ extends T>(..._args: [exemplar: T_] | []) =>
-    defineTuple<T_>();
+  const narrow = <T_ extends T>(..._exemplar: T_ | []) => defineTuple<T_>();
   return Object.assign(construct, { narrow });
 };
 
@@ -29,31 +28,12 @@ type ObjectOf<T extends BaseTuple, L extends BaseLabels> = {
     `${number}`
   > as L[I]]: T[I extends `${infer N extends number}` ? N : never];
 };
-type StructOf<T extends BaseTuple, L extends BaseLabels> = Readonly<
-  T & ObjectOf<T, L>
->;
+
 type TupleFromObject<
   T extends BaseTuple,
   L extends BaseLabels,
   O extends ObjectOf<T, L>,
 > = T & { [I in keyof L]: O[L[I]] };
-
-type StructFactory<T extends BaseTuple, L extends BaseLabels> = (<
-  const T_ extends T,
->(
-  ...args: T_
-) => StructOf<T_, L>) & {
-  from: <const O extends ObjectOf<T, L>>(
-    arg: O,
-  ) => Readonly<O & TupleFromObject<T, L, O>>;
-  narrow: <const T_ extends T>() => StructFactory<T_, L>;
-  narrowFrom: <
-    const O extends ObjectOf<T, L>,
-    // const T_ extends TupleFromObject<T, L, O>,
-  >(
-    ..._args: [exemplar: O] | []
-  ) => StructFactory<{ [I in keyof L]: O[L[I]] }, L>;
-};
 
 const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
   cache: InternCache<
@@ -62,7 +42,7 @@ const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
     Readonly<BaseTuple & ObjectOf<BaseTuple, L>>
   >,
   labels: L,
-): StructFactory<T, L> => {
+) => {
   const construct = <T_ extends T, O extends ObjectOf<T_, L>>(
     ...args: T_
   ): Readonly<T_ & O> => {
@@ -85,14 +65,11 @@ const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
     return construct<T_, ObjectOf<T_, L>>(...args);
   };
 
-  const narrow = <const T_ extends T>(..._args: [exemplar: T_] | []) =>
+  const narrow = <T_ extends T>(..._exemplar: T_ | []) =>
     defineStruct<T_, L>(cache, labels);
 
-  const narrowFrom = <
-    const O extends ObjectOf<T, L>,
-  >(
-    ..._args: [exemplar: O] | []
-  ) => defineStruct<{ [I in keyof L]: O[L[I]] }, L>(cache, labels);
+  const narrowFrom = <O extends ObjectOf<T, L>>(..._args: [exemplar: O] | []) =>
+    defineStruct<{ [I in keyof L]: O[L[I]] }, L>(cache, labels);
 
   return Object.assign(fromTuple, { from: fromObject, narrow, narrowFrom });
 };

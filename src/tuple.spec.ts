@@ -1,6 +1,7 @@
 import { tuple, _tupleCache } from ".";
+import * as TT from "./type-testing";
 
-type ExpectNever<T extends never> = true;
+type X = TT.Assignable<string, number>;
 
 async function waitForGC(): Promise<void> {
   await new Promise((res) => setTimeout(res, 10));
@@ -21,6 +22,7 @@ test("Indexability", () => {
   expect(t[0]).toBe(42);
   expect(t[1]).toBe("blah");
   expect(t[2]).toBe(a);
+  TT.expect<TT.Equivalent<typeof t, readonly [42, "blah", {}]>>;
 });
 
 test("Iterability", () => {
@@ -61,7 +63,7 @@ test("Nestable", () => {
   expect(t2).toBe(t1);
   expect(t1 === t2).toBe(true);
   expect(t3).not.toBe(t1);
-  type ExpectNoOverlap = ExpectNever<Extract<typeof t1, typeof t3>>;
+  TT.expect<TT.Equivalent<Extract<typeof t3, typeof t2>, never>>;
 });
 
 test("NaN is equivalent to itself", () => {
@@ -119,4 +121,17 @@ test("Tuples are frozen", () => {
   expect(() => {
     (t as any)[0] = 42;
   }).toThrow();
+});
+
+test("Tuples can be narrowed by generic type argument", () => {
+  type Point = [number, number];
+  const Point = tuple.narrow<Point>();
+  TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
+  expect(Point(1,2)).toBe(tuple(1,2));
+});
+
+test("Tuples can be narrowed by exemplar", () => {
+  const Point = tuple.narrow(0, 0);
+  TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
+  expect(Point(1,2)).toBe(tuple(1,2));
 });

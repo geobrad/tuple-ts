@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "tuple-ts",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "Tuples and structs for TypeScript and JavaScript with equality and identity semantics.",
   "keywords": [
     "tuple",
@@ -19,7 +19,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/geobrad/tuple-ts.git"
+    "url": "git+https://github.com/geobrad/tuple-ts.git"
   },
   "bugs": {
     "url": "https://github.com/geobrad/tuple-ts/issues"

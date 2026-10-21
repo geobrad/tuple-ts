@@ -7,8 +7,12 @@ describe("struct", () => {
     const User = struct(["name", "age"]);
     const user0 = User("Bob", 25);
     const user1 = User("Bob", 25);
-    TT.expect<TT.Assignable<typeof user1, readonly ["Bob", 25]>>;
-    TT.expect<TT.Assignable<typeof user1, { readonly name: "Bob"; age: 25 }>>;
+    TT.expect<
+      TT.Equivalent<
+        typeof user1,
+        { name: "Bob"; age: 25 } & readonly ["Bob", 25]
+      >
+    >;
     expect(user0).toBe(user1);
     expect(Array.isArray(user0)).toBe(true);
     expect([...user1]).toEqual(["Bob", 25]);
@@ -33,8 +37,12 @@ describe("struct", () => {
   it("supports object-based construction", () => {
     const User = struct(["name", "age"]);
     const user1 = User.from({ name: "Bob", age: 25 });
-    TT.expect<TT.Assignable<typeof user1, readonly ["Bob", 25]>>;
-    TT.expect<TT.Assignable<typeof user1, { name: "Bob"; age: 25 }>>;
+    TT.expect<
+      TT.Equivalent<
+        typeof user1,
+        { name: "Bob"; age: 25 } & readonly ["Bob", 25]
+      >
+    >;
     expect(user1).toBe(User("Bob", 25));
     const user2 = User.from({ name: "Henry", age: 25 });
     expect(user2).not.toBe(user1);
@@ -52,8 +60,12 @@ describe("struct", () => {
     >;
     const person1 = Person("Bob", 25);
     expect(person1).toBe(Person("Bob", 25));
-    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
-    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
+    TT.expect<
+      TT.Equivalent<
+        typeof person1,
+        { name: "Bob"; age: 25 } & readonly ["Bob", 25]
+      >
+    >;
   });
 
   it("can be narrowed using an exemplar", () => {
@@ -67,8 +79,12 @@ describe("struct", () => {
     >;
     const person1 = Person("Bob", 25);
     expect(person1).toBe(Person("Bob", 25));
-    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
-    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
+    TT.expect<
+      TT.Equivalent<
+        typeof person1,
+        { name: "Bob"; age: 25 } & readonly ["Bob", 25]
+      >
+    >;
   });
 
   it("can be narrowed by object type", () => {
@@ -83,8 +99,12 @@ describe("struct", () => {
     >;
     const person1 = Person("Bob", 25);
     expect(person1).toBe(Person("Bob", 25));
-    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
-    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
+    TT.expect<
+      TT.Equivalent<
+        typeof person1,
+        { name: "Bob"; age: 25 } & readonly ["Bob", 25]
+      >
+    >;
   });
 
   it("can be narrowed by object type using an exemplar", () => {
@@ -98,7 +118,11 @@ describe("struct", () => {
     >;
     const person1 = Person("Bob", 25);
     expect(person1).toBe(Person("Bob", 25));
-    TT.expect<TT.Assignable<typeof person1, readonly ["Bob", 25]>>;      
-    TT.expect<TT.Assignable<typeof person1, { name: "Bob", age: 25 }>>;      
+    TT.expect<
+      TT.Equivalent<
+        typeof person1,
+        { name: "Bob"; age: 25 } & readonly ["Bob", 25]
+      >
+    >;
   });
 });

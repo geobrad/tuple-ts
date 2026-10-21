@@ -24,13 +24,13 @@ function arrayEquivalent(
 
 export type TupleFactory<T extends BaseTuple = BaseTuple> = {
   <const T_ extends T>(...args: T_): T_;
-  typed<T_ extends T>(...exemplar: T_ | []): TupleFactory<T_>;
+  typed<T_ extends T>(...exemplar: T_ | []): TupleFactory<Readonly<T_>>;
 };
 
 const defineTuple = <T extends BaseTuple>(): TupleFactory<T> => {
   const construct = <const T_ extends T>(...args: T_) =>
     _tupleCache.get<T_, T_>(args);
-  const typed = <T_ extends T>(..._exemplar: T_ | []) => defineTuple<T_>();
+  const typed = <T_ extends T>(..._exemplar: T_ | []) => defineTuple<Readonly<T_>>();
   return Object.assign(construct, { typed });
 };
 
@@ -52,7 +52,7 @@ export type StructFactory<T extends BaseTuple, L extends BaseLabels> = {
   >(
     arg: O,
   ): Readonly<ObjectOf<T_, L> & T_>;
-  typed<T_ extends T>(...exemplar: T_ | []): StructFactory<T_, L>;
+  typed<T_ extends T>(...exemplar: T_ | []): StructFactory<Readonly<T_>, L>;
   typedFrom<O extends ObjectOf<T, L>>(
     ...args: [exemplar: O] | []
   ): StructFactory<{ [I in keyof L]: O[L[I]] }, L>;
@@ -89,7 +89,7 @@ const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
   };
 
   const typed = <T_ extends T>(..._exemplar: T_ | []) =>
-    defineStruct<T_, L>(cache, labels);
+    defineStruct<Readonly<T_>, L>(cache, labels);
 
   const typedFrom = <O extends ObjectOf<T, L>>(..._args: [exemplar: O] | []) =>
     defineStruct<{ [I in keyof L]: O[L[I]] }, L>(cache, labels);

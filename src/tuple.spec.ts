@@ -6,7 +6,7 @@ type X = TT.Assignable<string, number>;
 
 async function waitForGC(): Promise<void> {
   await new Promise((res) => setTimeout(res, 10));
-  (global as any).gc(); // requires node --expose-gc
+  (globalThis as any).gc(); // requires node --expose-gc
   await new Promise((res) => setTimeout(res, 10));
 }
 
@@ -130,7 +130,7 @@ test("Tuples can be narrowed by generic type argument", () => {
   TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
   const point1 = Point(1, 2);
   expect(point1).toBe(tuple(1,2));
-  TT.expect<TT.Equivalent<typeof point1, [1, 2]>>;
+  TT.expect<TT.Equivalent<typeof point1, readonly [1, 2]>>;
 });
 
 test("Tuples can be narrowed by exemplar", () => {
@@ -138,5 +138,5 @@ test("Tuples can be narrowed by exemplar", () => {
   TT.expect<TT.Equivalent<Parameters<typeof Point>, [number, number]>>;
   const point1 = Point(1, 2);
   expect(point1).toBe(tuple(1,2));
-  TT.expect<TT.Equivalent<typeof point1, [1, 2]>>;
+  TT.expect<TT.Equivalent<typeof point1, readonly [1, 2]>>;
 });

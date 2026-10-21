@@ -15,7 +15,12 @@ function arrayEquivalent(
   return true;
 }
 
-const defineTuple = <T extends BaseTuple>() => {
+export type TupleFactory<T extends BaseTuple = BaseTuple> = {
+  <const T_ extends T>(...args: T_): T_;
+  typed<T_ extends T>(...exemplar: T_ | []): TupleFactory<T_>;
+}
+
+const defineTuple = <T extends BaseTuple>(): TupleFactory<T> => {
   const construct = <const T_ extends T>(...args: T_) =>
     _tupleCache.get<T_, T_>(args);
   const typed = <T_ extends T>(..._exemplar: T_ | []) => defineTuple<T_>();
@@ -35,6 +40,18 @@ type TupleFromObject<
   O extends ObjectOf<T, L>,
 > = T & { [I in keyof L]: O[L[I]] };
 
+export type StructFactory<T extends BaseTuple, L extends BaseLabels> = {
+  <const T_ extends T>(...args: T_): Readonly<T_ & ObjectOf<T_, L>>;
+  from<
+    const O extends ObjectOf<T, L>,
+    const T_ extends TupleFromObject<T, L, O>,
+  >(arg: O): Readonly<ObjectOf<T_, L> & T_>;
+  typed<T_ extends T>(...exemplar: T_ | []): StructFactory<T_, L>;
+  typedFrom<O extends ObjectOf<T, L>>(
+    ...args: [exemplar: O] | []
+  ): StructFactory<{ [I in keyof L]: O[L[I]] }, L>;
+}
+
 const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
   cache: InternCache<
     number,
@@ -42,7 +59,7 @@ const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
     Readonly<BaseTuple & ObjectOf<BaseTuple, L>>
   >,
   labels: L,
-) => {
+): StructFactory<T, L> => {
   const construct = <T_ extends T, O extends ObjectOf<T_, L>>(
     ...args: T_
   ): Readonly<T_ & O> => {
@@ -84,12 +101,12 @@ export const tuple = defineTuple<BaseTuple>();
 
 export const struct = <const L extends readonly string[]>(labels: L) => {
   const cacheInjestFn = (tuple: BaseTuple) => {
-    type T = BaseTuple & ObjectOf<BaseTuple, L>;
+    type T = ObjectOf<BaseTuple, L>;
     const labeledTuple = tuple as T;
     labels.forEach((label: keyof T, index) => {
       labeledTuple[label] = tuple[index] as T[keyof T];
     });
-    return Object.freeze(labeledTuple);
+    return Object.freeze(labeledTuple as T & BaseTuple);
   };
   const cache = new InternCache(
     hash.valuesHash,

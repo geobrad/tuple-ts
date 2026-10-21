@@ -42,7 +42,7 @@
   "author": "George Bradley",
   "license": "ISC",
   "devDependencies": {
-    "typescript": "^5.8.3",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   },
   "files": [

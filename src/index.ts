@@ -1,5 +1,5 @@
-import InternCache from "./intern-cache";
-import * as hash from "./hash";
+import InternCache from "./intern-cache.js";
+import * as hash from "./hash.js";
 
 type BaseTuple = readonly unknown[];
 type BaseLabels = readonly string[];

@@ -1,15 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2020",              // supports WeakRef, FinalizationRegistry natively
-    "module": "esnext",              // or "CommonJS" if you want CommonJS output
+    "module": "nodenext",            // or "CommonJS" if you want CommonJS output
     "declaration": true,             // generate .d.ts files
-    "declarationMap": true,
     "strict": true,                  // enable strict type checks
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,         // allow default imports from CommonJS modules
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,            // speed up build by skipping lib .d.ts checks
-    "moduleResolution": "node",      // resolve modules like Node.js
+    "moduleResolution": "nodenext",  // resolve modules as per ESM
     "outDir": "./dist",              // output directory for compiled files
     "lib": ["ES2023", "ESNext.Iterator"]
   },

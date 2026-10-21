@@ -1,5 +1,6 @@
-import { struct } from ".";
-import * as TT from "./type-testing";
+import { describe, it, expect } from "vitest";
+import { struct } from "./index.js";
+import * as TT from "./type-testing.js";
 
 describe("struct", () => {
   it("narrows on construction", () => {

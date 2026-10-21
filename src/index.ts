@@ -4,8 +4,12 @@ import * as hash from "./hash.js";
 type BaseTuple = readonly unknown[];
 type BaseLabels = readonly string[];
 
-type NumericKeyOf<T> = keyof T & `${number}`;
+type NumericKeyOf<T> = keyof T & (number | `${number}`);
 type ToNumber<K> = K extends `${infer N extends number}` ? N : never;
+
+type J = NumericKeyOf<[1, 2]>;
+type K = number extends keyof { 1: "blah" } ? true : false;
+type X = "1" extends keyof [1, 2] ? true : false;
 
 function arrayEquivalent(
   a1: readonly unknown[],

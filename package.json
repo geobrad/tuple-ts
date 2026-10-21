@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "tuple-ts",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Tuples and structs for TypeScript and JavaScript with equality and identity semantics.",
   "keywords": [
     "tuple",

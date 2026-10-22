@@ -21,7 +21,7 @@ with optional slot labels:
 ```ts
 import { struct } from "tuple-ts";
 
-const Person = struct(["name", "age"]);
+const Person = struct("name", "age");
 
 const person1 = Person("Bob", 25);
 
@@ -146,12 +146,12 @@ mat1 === mat2; // true
 ## Structs
 
 Use `struct()` when you want a tuple with meaningful labels.
-Provide a list of labels to create a reusable factory that produces tuples with additional named properties.
+Provide the labels to create a reusable factory that produces tuples with additional named properties.
 
 ```ts
 import { struct } from "tuple-ts";
 
-const Point = struct(["x", "y"]);
+const Point = struct("x", "y");
 
 const p = Point(10, 20);
 
@@ -171,7 +171,7 @@ Object.isFrozen(p); // true
 `.from()` accepts an object with the declared labels and creates the corresponding positional tuple:
 
 ```ts
-const Point = struct(["x", "y"]);
+const Point = struct("x", "y");
 
 const point1 = Point.from({ x: 10, y: 20 });
 
@@ -196,7 +196,7 @@ The returned value contains the tuple slots and the schema's named properties, n
 Just like `tuple`, structs support `.typed()` to specify the struct's value types positionally:
 
 ```ts
-const Point = struct(["x", "y"]).typed<[number, number]>();
+const Point = struct("x", "y").typed<[number, number]>();
 
 Point(10, 20);   // OK
 Point(10, "20"); // TypeScript error
@@ -207,7 +207,7 @@ Use `.typedFrom()` when you want to express the value types by label instead:
 ```ts
 type Coordinates = { x: number; y: number };
 
-const Point = struct(["x", "y"]).typedFrom<Coordinates>();
+const Point = struct("x", "y").typedFrom<Coordinates>();
 
 Point(10, 20);    // OK
 Point(10, "20");  // TypeScript error
@@ -217,19 +217,19 @@ Point.from({ x: 10, y: 20 }); // OK
 You can also provide a typed exemplar to `.typedFrom()`:
 
 ```ts
-const Point = struct(["x", "y"]).typedFrom({ x: 0, y: 0 });
+const Point = struct("x", "y").typedFrom({ x: 0, y: 0 });
 ```
 
 ### Struct schemas and identity
 
-Each call to `struct(labels)` creates its own cache. Factories narrowed from that schema with `.typed()` or `.typedFrom()` share the cache, but separate calls to `struct()` create separate caches, even when given identical labels:
+Each call to `struct(...)` creates its own identity context:
 
 ```ts
-const PointA = struct(["x", "y"]).typed<[number, number]>();
-const PointB = struct(["x", "y"]).typed<[number, number]>();
+const Point = struct("x", "y");
+Point(1, 2) === Point(1, 2); // true
 
-PointA(1, 2) === PointA(1, 2); // true
-PointA(1, 2) === PointB(1, 2); // false
+const Coord = struct("x", "y");
+Coord(1, 2) !== Point(1, 2); // true
 ```
 
 Struct identity is therefore scoped to the schema factory. Ordinary `tuple()` values use a separate, shared tuple cache and do not share identity with struct values, even when their indexed elements are equal.
@@ -262,7 +262,7 @@ myMap.set(tuple(10, 20), "visited");
 myMap.has(tuple(10, 20)); // true
 myMap.get(tuple(10, 20)); // "visited"
 
-const Point = struct(["x", "y"]);
+const Point = struct("x", "y");
 const mySet = new Set();
 mySet.add(Point(1, 2));
 
@@ -301,6 +301,10 @@ a === b; // true
 `tuple-ts` works by maintaining internal caches of tuple/struct objects. This raises a natural question: *doesn't the cache grow forever?*
 
 The cache uses `WeakRef` to avoid keeping interned objects alive solely because they are cached. A `FinalizationRegistry` is used to clean up cache entries after objects are garbage-collected. This allows unreferenced values to be reclaimed without the cache retaining them indefinitely.
+
+## Compatibility
+
+`tuple-ts` supports NodeJS version 20 or newer.
 
 ## License
 

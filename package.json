@@ -1,8 +1,8 @@
 {
   "type": "module",
   "name": "tuple-ts",
-  "version": "0.8.4",
-  "description": "Tuples and structs for TypeScript and JavaScript with equality and identity semantics.",
+  "version": "0.9.0",
+  "description": "TypeScript-first tuples and structs with value-based identity",
   "keywords": [
     "tuple",
     "struct",
@@ -25,25 +25,26 @@
     "url": "https://github.com/geobrad/tuple-ts/issues"
   },
   "homepage": "https://github.com/geobrad/tuple-ts",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "tsc --noEmit && vitest run src/",
+    "build": "rm -r dist/ && tsc && esbuild src/index.ts --bundle --minify --format=esm --platform=browser --target=es2023 --outfile=dist/tuple-ts.min.js",
+    "test": "tsc -p tsconfig.test.json --noEmit && vitest run src/",
     "prepare": "npm run build",
     "prepublishOnly": "npm test"
   },
-  "author": "George Bradley",
+  "author": "George Bradley <george@gbrad.com> (https://gbrad.com/)",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "vitest": "^4.1.12"
   },
   "files": [
     "./dist"

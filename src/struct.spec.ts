@@ -4,7 +4,7 @@ import * as TT from "./type-testing.js";
 
 describe("struct", () => {
   it("narrows on construction", () => {
-    const User = struct(["name", "age"]);
+    const User = struct("name", "age");
     const user0 = User("Bob", 25);
     const user1 = User("Bob", 25);
     TT.expect<
@@ -24,7 +24,7 @@ describe("struct", () => {
   });
 
   it("has shallow identity/equality semantics", () => {
-    const User = struct(["name", "age"]);
+    const User = struct("name", "age");
     const user1 = User("Bob", 25);
     const user2 = User("Bob", 25);
     const user3 = User("Henry", 25);
@@ -35,7 +35,7 @@ describe("struct", () => {
   });
 
   it("supports object-based construction", () => {
-    const User = struct(["name", "age"]);
+    const User = struct("name", "age");
     const user1 = User.from({ name: "Bob", age: 25 });
     TT.expect<
       TT.Equivalent<
@@ -50,7 +50,7 @@ describe("struct", () => {
 
   it("can be narrowed", () => {
     type Person = [string, number];
-    const Person = struct(["name", "age"]).typed<Person>();
+    const Person = struct("name", "age").typed<Person>();
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -69,7 +69,7 @@ describe("struct", () => {
   });
 
   it("can be narrowed using an exemplar", () => {
-    const Person = struct(["name", "age"]).typed("", 0);
+    const Person = struct("name", "age").typed("", 0);
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -89,7 +89,7 @@ describe("struct", () => {
 
   it("can be narrowed by object type", () => {
     type Person = { name: string; age: number };
-    const Person = struct(["name", "age"]).typedFrom<Person>();
+    const Person = struct("name", "age").typedFrom<Person>();
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -108,7 +108,7 @@ describe("struct", () => {
   });
 
   it("can be narrowed by object type using an exemplar", () => {
-    const Person = struct(["name", "age"]).typedFrom({ name: "", age: 0 });
+    const Person = struct("name", "age").typedFrom({ name: "", age: 0 });
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -124,5 +124,19 @@ describe("struct", () => {
         { name: "Bob"; age: 25 } & readonly ["Bob", 25]
       >
     >;
+  });
+
+  it("creates its own identity context", () => {
+    const Point = struct("x", "y");
+    const Coord = struct("x", "y");
+    expect(Point(1, 2) !== Coord(1, 2)).toBe(true);
+  });
+
+  it("maintains identity context when narrowed", () => {
+    const XY = struct("x", "y");
+    const Point1 = XY.typed<[number, number]>();
+    expect(Point1(1, 2)).toBe(XY(1, 2));
+    const Point2 = XY.typedFrom<{ x: number; y: number }>();
+    expect(Point2(1, 2)).toBe(XY(1, 2));
   });
 });

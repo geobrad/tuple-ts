@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { tuple, _tupleCache } from "./index.js";
+import { tuple, t, _tupleCache } from "./index.js";
 import * as TT from "./type-testing.js";
 
 type X = TT.Assignable<string, number>;

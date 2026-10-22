@@ -1,8 +1,8 @@
 import InternCache from "./intern-cache.js";
 import * as hash from "./hash.js";
 
-type BaseTuple = readonly unknown[];
-type BaseLabels = readonly string[];
+type Tuple = readonly unknown[];
+type Labels = readonly string[];
 
 type NumericKeyOf<T> = keyof T & (number | `${number}`);
 type ToNumber<K> = K extends `${infer N extends number}` ? N : never;
@@ -22,29 +22,29 @@ function arrayEquivalent(
   return true;
 }
 
-export type TupleFactory<T extends BaseTuple = BaseTuple> = {
+export type TupleFactory<T extends Tuple = Tuple> = {
   <const T_ extends T>(...args: T_): T_;
   typed<T_ extends T>(...exemplar: T_ | []): TupleFactory<Readonly<T_>>;
 };
 
-const defineTuple = <T extends BaseTuple>(): TupleFactory<T> => {
+const defineTuple = <T extends Tuple>(): TupleFactory<T> => {
   const construct = <const T_ extends T>(...args: T_) =>
     _tupleCache.get<T_, T_>(args);
   const typed = <T_ extends T>(..._exemplar: T_ | []) => defineTuple<Readonly<T_>>();
   return Object.assign(construct, { typed });
 };
 
-type ObjectOf<T extends BaseTuple, L extends BaseLabels> = {
+type ObjectOf<T extends Tuple, L extends Labels> = {
   [I in NumericKeyOf<L> as L[I]]: T[ToNumber<I>];
 };
 
 type TupleFromObject<
-  T extends BaseTuple,
-  L extends BaseLabels,
+  T extends Tuple,
+  L extends Labels,
   O extends ObjectOf<T, L>,
 > = T & { [I in keyof L]: O[L[I]] };
 
-export type StructFactory<T extends BaseTuple, L extends BaseLabels> = {
+export type StructFactory<T extends Tuple, L extends Labels> = {
   <const T_ extends T>(...args: T_): Readonly<T_ & ObjectOf<T_, L>>;
   from<
     const O extends ObjectOf<T, L>,
@@ -58,11 +58,11 @@ export type StructFactory<T extends BaseTuple, L extends BaseLabels> = {
   ): StructFactory<{ [I in keyof L]: O[L[I]] }, L>;
 };
 
-const defineStruct = <T extends BaseTuple, L extends BaseLabels>(
+const defineStruct = <T extends Tuple, L extends Labels>(
   cache: InternCache<
     number,
-    BaseTuple,
-    Readonly<BaseTuple & ObjectOf<BaseTuple, L>>
+    Tuple,
+    Readonly<Tuple & ObjectOf<Tuple, L>>
   >,
   labels: L,
 ): StructFactory<T, L> => {
@@ -103,15 +103,15 @@ export const _tupleCache = new InternCache(
   Object.freeze,
 );
 
-export const tuple = defineTuple<BaseTuple>();
+export const tuple = defineTuple<Tuple>();
 
-export const struct = <const L extends readonly string[]>(labels: L) => {
-  const cacheInjestFn = (tuple: BaseTuple) => {
-    type O = ObjectOf<BaseTuple, L>;
+export const struct = <const L extends readonly string[]>(...labels: L) => {
+  const cacheInjestFn = (tuple: Tuple) => {
+    type O = ObjectOf<Tuple, L>;
     labels.forEach((label: keyof O, index) => {
       (tuple as O)[label] = tuple[index] as O[keyof O];
     });
-    return Object.freeze(tuple as O & BaseTuple);
+    return Object.freeze(tuple as O & Tuple);
   };
   const cache = new InternCache(
     hash.valuesHash,

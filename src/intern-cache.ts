@@ -1,4 +1,6 @@
-export default class<H, K, V extends object> {
+type Value = symbol | object;
+
+export default class<H, K, V extends Value> {
   private readonly map: Map<H, Set<WeakRef<V>>> = new Map();
   private readonly cleanupRegistry = new FinalizationRegistry<[H, WeakRef<V>]>(
     (x) => this.remove(x),
@@ -21,7 +23,7 @@ export default class<H, K, V extends object> {
     }
   }
 
-  get<K_ extends K, V_ extends V>(key: K_): V_ {
+  getOrSet<K_ extends K, V_ extends V>(key: K_): V_ {
     const hash = this.hashFn(key);
     let hashBucket = this.map.get(hash);
     if (hashBucket !== undefined) {

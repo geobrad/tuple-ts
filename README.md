@@ -62,12 +62,13 @@ The values returned by `tuple(...)` are regular frozen JavaScript arrays:
 ```ts
 const tuple1 = tuple(1, "foo");
 
-Array.isArray(tuple1);   // true
-tuple1.length === 2;     // true
-tuple1[0] === 1;         // true
-tuple1[1] === "foo";     // true
-Object.isFrozen(tuple1); // true
-[ ...tuple1 ];           // [1, "foo"]
+Array.isArray(tuple1);    // true
+tuple1.length === 2;      // true
+tuple1[0] === 1;          // true
+tuple1[1] === "foo";      // true
+Object.isFrozen(tuple1);  // true
+[ ...tuple1 ];            // [1, "foo"]
+tuple.isInstance(tuple1); // true
 ```
 
 ...with automatically inferred literal types:
@@ -115,6 +116,8 @@ const Point = tuple.typed<[number, number]>();
 
 Point(10, 20);   // OK
 Point(10, "20"); // TypeScript error
+
+tuple.isInstance(Point(1, 2)); // true;
 ```
 
 You can alternatively provide an exemplar from which the type constraint will be inferred:
@@ -162,10 +165,11 @@ p[1]; // 20
 p.x;  // 10
 p.y;  // 20
 
-Array.isArray(p);   // true!
-Object.isFrozen(p); // true
-[ ...p ];           // [10, 20]
-{ ...p };           // { 0: 10, 1: 20, x: 10, y: 20 }
+Array.isArray(p);    // true!
+Object.isFrozen(p);  // true
+Point.isInstance(p); // true
+[ ...p ];            // [10, 20]
+{ ...p };            // { 0: 10, 1: 20, x: 10, y: 20 }
 ```
 
 ### Constructing from an object with `.from()`
@@ -198,10 +202,13 @@ The returned value contains the tuple slots and the schema's named properties, n
 Just like `tuple`, structs support `.typed()` to specify the struct's value types positionally:
 
 ```ts
-const Point = struct("x", "y").typed<[number, number]>();
+const XY = struct("x", "y");
+const Point = XY.typed<[number, number]>();
 
 Point(10, 20);   // OK
 Point(10, "20"); // TypeScript error
+
+XY.isInstance(Point(1, 2)); // true!
 ```
 
 Use `.typedFrom()` when you want to express the value types by label instead:

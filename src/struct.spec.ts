@@ -13,6 +13,7 @@ describe("struct", () => {
         { name: "Bob"; age: 25 } & readonly ["Bob", 25]
       >
     >;
+    expect(User.isInstance(user0)).toBe(true);
     expect(user0).toBe(user1);
     expect(Array.isArray(user0)).toBe(true);
     expect([...user1]).toEqual(["Bob", 25]);
@@ -50,7 +51,8 @@ describe("struct", () => {
 
   it("can be narrowed", () => {
     type Person = [string, number];
-    const Person = struct("name", "age").typed<Person>();
+    const NameAndAge = struct("name", "age");
+    const Person = NameAndAge.typed<Person>();
     TT.expect<TT.Equivalent<Parameters<typeof Person>, [string, number]>>;
     TT.expect<
       TT.Equivalent<
@@ -66,6 +68,7 @@ describe("struct", () => {
         { name: "Bob"; age: 25 } & readonly ["Bob", 25]
       >
     >;
+    expect(NameAndAge.isInstance(person1)).toBe(true);
   });
 
   it("can be narrowed using an exemplar", () => {
@@ -129,7 +132,10 @@ describe("struct", () => {
   it("creates its own identity context", () => {
     const Point = struct("x", "y");
     const Coord = struct("x", "y");
-    expect(Point(1, 2) !== Coord(1, 2)).toBe(true);
+    const point12 = Point(1, 2);
+    const coord12 = Coord(1, 2);
+    expect(point12 !== coord12).toBe(true);
+    expect(Point.isInstance(coord12)).toBe(false);
   });
 
   it("maintains identity context when narrowed", () => {

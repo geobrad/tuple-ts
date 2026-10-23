@@ -45,7 +45,9 @@ person1 === person2;    // true
 - Coordinates and other multi-dimensional values
 - Named, slot-based values such as points or pairs
 
-`tuple-ts` has zero dependencies and is just a few kilobytes gzipped.
+`tuple-ts` supports tuples containing any values, including only primitives, without sacrificing garbage-collection safety.
+
+`tuple-ts` has zero dependencies and is tiny at around 1 KB when minified and gzipped.
 
 ## Install
 

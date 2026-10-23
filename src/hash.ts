@@ -82,7 +82,7 @@ function bigintToUint32s(value: bigint): number[] {
   return result;
 }
 
-function valueHash(value: unknown): number {
+function valueHash<T extends unknown>(value: T): number {
   switch (typeof value) {
     case "string":
       return hashMixFn(stringToUint32s(value), stringSeed);
